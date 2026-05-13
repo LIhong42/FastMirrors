@@ -8,7 +8,7 @@
 - **Linux 软件源切换**: 支持 Debian/Ubuntu/CentOS/Arch/Alpine 等主流发行版
 - **pip 镜像源切换**: 快速切换 Python pip 镜像源
 - **交互式选择**: 提供友好的交互式界面选择镜像源
-- **速度测试**: 自动测试镜像源连接速度并排序
+- **速度测试**: 独立测速脚本，测试镜像源连接速度并按速度排序更新列表
 - **配置备份**: 自动备份原有配置，支持一键恢复
 
 ## 目录结构
@@ -18,13 +18,16 @@ fast_mirrors/
 ├── fast_mirrors.sh          # 主入口脚本
 ├── docker/
 │   ├── mirrors.txt          # Docker 镜像源列表
-│   └── change_mirror.sh     # Docker 换源脚本
+│   ├── change_mirror.sh     # Docker 换源脚本
+│   └── speed_test.sh        # Docker 测速脚本
 ├── linux/
 │   ├── mirrors.txt          # Linux 软件源列表
-│   └── change_mirror.sh     # Linux 换源脚本
+│   ├── change_mirror.sh     # Linux 换源脚本
+│   └── speed_test.sh        # Linux 测速脚本
 └── pip/
     ├── mirrors.txt          # pip 镜像源列表
-    └── change_mirror.sh     # pip 换源脚本
+    ├── change_mirror.sh     # pip 换源脚本
+    └── speed_test.sh        # pip 测速脚本
 ```
 
 ## 快速开始
@@ -42,14 +45,17 @@ fast_mirrors/
 # 交互式选择镜像源
 ./fast_mirrors.sh docker -i
 
+# 自动换源(测速后选择最快的3个源)
+sudo ./fast_mirrors.sh docker-auto
+
 # 列出所有可用镜像源
 ./fast_mirrors.sh docker -l
 
 # 设置指定镜像源
 sudo ./fast_mirrors.sh docker -s docker.1ms.run
 
-# 测试镜像源速度
-./fast_mirrors.sh docker -t
+# 测试镜像源速度并更新列表
+./fast_mirrors.sh docker-test
 
 # 查看当前配置
 ./fast_mirrors.sh docker -c
@@ -64,14 +70,17 @@ sudo ./fast_mirrors.sh docker -r
 # 交互式选择镜像源 (需要 root 权限)
 sudo ./fast_mirrors.sh linux -i
 
+# 自动换源(测速后选择最快的1个源)
+sudo ./fast_mirrors.sh linux-auto
+
 # 列出所有可用镜像源
 ./fast_mirrors.sh linux -l
 
 # 设置指定镜像源
 sudo ./fast_mirrors.sh linux -s mirrors.aliyun.com
 
-# 测试镜像源速度
-./fast_mirrors.sh linux -t
+# 测试镜像源速度并更新列表
+./fast_mirrors.sh linux-test
 
 # 查看当前配置
 ./fast_mirrors.sh linux -c
@@ -83,6 +92,9 @@ sudo ./fast_mirrors.sh linux -s mirrors.aliyun.com
 # 交互式选择镜像源
 ./fast_mirrors.sh pip -i
 
+# 自动换源(测速后选择最快的1个源)
+./fast_mirrors.sh pip-auto
+
 # 列出所有可用镜像源
 ./fast_mirrors.sh pip -l
 
@@ -92,8 +104,11 @@ sudo ./fast_mirrors.sh linux -s mirrors.aliyun.com
 # 全局设置镜像源 (需要 root 权限)
 sudo ./fast_mirrors.sh pip -g -i
 
-# 测试镜像源速度
-./fast_mirrors.sh pip -t
+# 全局自动换源
+sudo ./fast_mirrors.sh pip-auto -g
+
+# 测试镜像源速度并更新列表
+./fast_mirrors.sh pip-test
 
 # 查看当前配置
 ./fast_mirrors.sh pip -c

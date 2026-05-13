@@ -37,15 +37,15 @@ show_help() {
     echo "  -l, --list              列出所有可用的镜像源"
     echo "  -s, --set <地址>        设置指定的镜像源地址"
     echo "  -i, --interactive       交互式选择镜像源"
+    echo "  -a, --auto              自动换源(测速后选择最快的3个源)"
     echo "  -r, --restore           恢复备份的配置"
     echo "  -c, --current           显示当前配置的镜像源"
-    echo "  -t, --test              测试镜像源连接速度"
     echo "  -h, --help              显示此帮助信息"
     echo ""
     echo "示例:"
     echo "  $0 -i                   交互式选择镜像源"
     echo "  $0 -s docker.1ms.run    设置指定镜像源"
-    echo "  $0 -t                   测试所有镜像源速度"
+    echo "  $0 -a                   自动换源(测速后选择最快的3个源)"
     echo ""
 }
 
@@ -190,6 +190,137 @@ interactive_select() {
     set_mirror "$selected_mirror"
 }
 
+# 设置多个镜像源
+set_multiple_mirrors() {
+    local mirrors=("$@")
+
+    if [[ ${#mirrors[@]} -eq 0 ]]; then
+        echo -e "${ERROR} 请指定镜像源地址"
+        exit 1
+    fi
+
+    ensure_docker_dir
+    backup_config
+
+    # 构建 registry-mirrors 数组
+    local mirrors_json="["
+    for i in "${!mirrors[@]}"; do
+        if [[ $i -gt 0 ]]; then
+            mirrors_json+=", "
+        fi
+        mirrors_json+="\"https://${mirrors[$i]}\""
+    done
+    mirrors_json+="]"
+
+    # 创建或更新 daemon.json
+    if [[ -f "${DOCKER_CONFIG}" ]]; then
+        # 使用临时文件处理 JSON
+        if python3 -c "import json" 2>/dev/null; then
+            # 使用 Python 处理 JSON
+            python3 -c "
+import json
+import sys
+
+config = {}
+try:
+    with open('${DOCKER_CONFIG}', 'r') as f:
+        config = json.load(f)
+except:
+    pass
+
+config['registry-mirrors'] = ${mirrors_json}
+
+with open('${DOCKER_CONFIG}', 'w') as f:
+    json.dump(config, f, indent=2)
+"
+        else
+            # 简单处理：直接覆盖
+            echo "{\"registry-mirrors\": ${mirrors_json}}" > "${DOCKER_CONFIG}"
+        fi
+    else
+        echo "{\"registry-mirrors\": ${mirrors_json}}" > "${DOCKER_CONFIG}"
+    fi
+
+    echo -e "${SUCCESS} 已设置 ${#mirrors[@]} 个镜像源"
+
+    # 重启 Docker 服务
+    echo -e "${BLUE}正在重启 Docker 服务...${PLAIN}"
+    if systemctl restart docker; then
+        echo -e "${SUCCESS} Docker 服务重启成功"
+    else
+        echo -e "${WARN} Docker 服务重启失败，请手动重启"
+    fi
+
+    # 验证配置
+    echo ""
+    echo -e "${BOLD}当前 Docker 镜像源配置:${PLAIN}"
+    docker info 2>/dev/null | grep -A 10 "Registry Mirrors:" || echo "无法获取镜像源信息"
+}
+
+# 自动换源 (测速后选择最快的3个源)
+auto_change_mirror() {
+    echo -e "${BOLD}========================================${PLAIN}"
+    echo -e "${BOLD}    Docker 镜像源自动换源${PLAIN}"
+    echo -e "${BOLD}========================================${PLAIN}"
+    echo ""
+
+    check_docker
+
+    # Step 1: 备份原始源
+    echo -e "${BLUE}[Step 1] 备份原始 Docker 配置...${PLAIN}"
+    if [[ -f "${DOCKER_CONFIG}" ]]; then
+        local backup_file="${DOCKER_CONFIG}.bak.$(date +%Y%m%d%H%M%S)"
+        cp "${DOCKER_CONFIG}" "$backup_file"
+        echo -e "${SUCCESS} 已备份到: ${backup_file}"
+    else
+        echo -e "${WARN} 未找到 Docker 配置文件，跳过备份"
+    fi
+    echo ""
+
+    # Step 2: 运行测速脚本
+    echo -e "${BLUE}[Step 2] 运行测速脚本...${PLAIN}"
+    local speed_test_script="${SCRIPT_DIR}/speed_test.sh"
+    if [[ ! -f "$speed_test_script" ]]; then
+        echo -e "${ERROR} 未找到测速脚本: ${speed_test_script}"
+        exit 1
+    fi
+
+    # 运行测速并更新 mirrors.txt
+    bash "$speed_test_script"
+    echo ""
+
+    # Step 3: 选择最快的3个源
+    echo -e "${BLUE}[Step 3] 选择最快的 3 个镜像源...${PLAIN}"
+
+    local mirrors=()
+    while IFS='|' read -r url desc || [[ -n "$url" ]]; do
+        [[ "$url" =~ ^#.*$ || -z "$url" ]] && continue
+        mirrors+=("$url")
+        if [[ ${#mirrors[@]} -ge 3 ]]; then
+            break
+        fi
+    done < "${MIRRORS_FILE}"
+
+    if [[ ${#mirrors[@]} -eq 0 ]]; then
+        echo -e "${ERROR} 未找到可用的镜像源"
+        exit 1
+    fi
+
+    echo -e "${SUCCESS} 已选择 ${#mirrors[@]} 个最快的镜像源:"
+    for i in "${!mirrors[@]}"; do
+        echo -e "  $((i+1)). ${mirrors[$i]}"
+    done
+    echo ""
+
+    # Step 4: 设置镜像源
+    echo -e "${BLUE}[Step 4] 设置镜像源...${PLAIN}"
+    set_multiple_mirrors "${mirrors[@]}"
+
+    echo ""
+    echo -e "${GREEN}${BOLD}自动换源完成!${PLAIN}"
+    echo -e "${BOLD}已更换为最快的 ${#mirrors[@]} 个镜像源${PLAIN}"
+}
+
 # 恢复备份配置
 restore_config() {
     if [[ -f "${DOCKER_CONFIG_BACKUP}" ]]; then
@@ -218,46 +349,6 @@ show_current() {
     docker info 2>/dev/null | grep -A 5 "Registry Mirrors:" || echo "未配置镜像源"
 }
 
-# 测试镜像源速度
-test_mirrors() {
-    echo -e "${BOLD}测试镜像源连接速度...${PLAIN}"
-    echo ""
-
-    local mirrors=($(get_mirrors_array))
-    local results=()
-
-    for mirror in "${mirrors[@]}"; do
-        echo -n "测试 ${mirror}... "
-        local start_time=$(date +%s%N)
-        if curl -s --connect-timeout 3 "https://${mirror}/v2/" > /dev/null 2>&1; then
-            local end_time=$(date +%s%N)
-            local duration=$(( (end_time - start_time) / 1000000 ))
-            echo -e "${GREEN}${duration}ms${PLAIN}"
-            results+=("${duration}|${mirror}")
-        else
-            echo -e "${RED}超时${PLAIN}"
-            results+=("999999|${mirror}")
-        fi
-    done
-
-    # 排序并显示结果
-    echo ""
-    echo -e "${BOLD}镜像源速度排名 (从快到慢):${PLAIN}"
-    IFS=$'\n' sorted=($(sort -t'|' -k1 -n <<<"${results[*]}"))
-    unset IFS
-
-    local rank=1
-    for result in "${sorted[@]}"; do
-        local time=$(echo "$result" | cut -d'|' -f1)
-        local mirror=$(echo "$result" | cut -d'|' -f2)
-        if [[ "$time" == "999999" ]]; then
-            printf "  %2d. %-45s ${RED}不可用${PLAIN}\n" "$rank" "$mirror"
-        else
-            printf "  %2d. %-45s ${GREEN}%sms${PLAIN}\n" "$rank" "$mirror" "$time"
-        fi
-        ((rank++))
-    done
-}
 
 # 主函数
 main() {
@@ -280,16 +371,16 @@ main() {
                 action="interactive"
                 shift
                 ;;
+            -a|--auto)
+                action="auto"
+                shift
+                ;;
             -r|--restore)
                 action="restore"
                 shift
                 ;;
             -c|--current)
                 action="current"
-                shift
-                ;;
-            -t|--test)
-                action="test"
                 shift
                 ;;
             -h|--help)
@@ -325,15 +416,16 @@ main() {
             check_docker
             interactive_select
             ;;
+        auto)
+            check_root
+            auto_change_mirror
+            ;;
         restore)
             check_root
             restore_config
             ;;
         current)
             show_current
-            ;;
-        test)
-            test_mirrors
             ;;
     esac
 }

@@ -38,16 +38,29 @@ show_help() {
     echo -e "${BOLD}用法:${PLAIN}"
     echo "  $0 <命令> [选项]"
     echo ""
-    echo -e "${BOLD}命令:${PLAIN}"
+    echo -e "${BOLD}换源命令:${PLAIN}"
     echo -e "  ${GREEN}docker${PLAIN}     Docker 镜像源管理"
     echo -e "  ${GREEN}linux${PLAIN}      Linux 软件源管理"
     echo -e "  ${GREEN}pip${PLAIN}        pip 镜像源管理"
     echo -e "  ${GREEN}all${PLAIN}        一键更换所有源(交互式)"
     echo ""
+    echo -e "${BOLD}自动换源命令 (非交互式):${PLAIN}"
+    echo -e "  ${CYAN}docker-auto${PLAIN}  自动更换 Docker 镜像源(测速后选择最快的3个)"
+    echo -e "  ${CYAN}linux-auto${PLAIN}   自动更换 Linux 软件源(测速后选择最快的1个)"
+    echo -e "  ${CYAN}pip-auto${PLAIN}     自动更换 pip 镜像源(测速后选择最快的1个)"
+    echo ""
+    echo -e "${BOLD}测速命令:${PLAIN}"
+    echo -e "  ${BLUE}docker-test${PLAIN}  测试 Docker 镜像源速度并更新列表"
+    echo -e "  ${BLUE}linux-test${PLAIN}   测试 Linux 软件源速度并更新列表"
+    echo -e "  ${BLUE}pip-test${PLAIN}     测试 pip 镜像源速度并更新列表"
+    echo ""
     echo -e "${BOLD}示例:${PLAIN}"
     echo "  $0 docker -i        # 交互式选择 Docker 镜像源"
     echo "  $0 linux -i         # 交互式选择 Linux 软件源"
     echo "  $0 pip -i           # 交互式选择 pip 镜像源"
+    echo "  $0 docker-auto      # 自动更换 Docker 镜像源(最快的3个)"
+    echo "  $0 linux-auto       # 自动更换 Linux 软件源(最快的1个)"
+    echo "  $0 pip-auto         # 自动更换 pip 镜像源(最快的1个)"
     echo "  $0 all              # 一键更换所有源"
     echo ""
     echo -e "${BOLD}获取更多帮助:${PLAIN}"
@@ -84,6 +97,72 @@ run_pip() {
     local script="${SCRIPT_DIR}/pip/change_mirror.sh"
     if [[ -f "$script" ]]; then
         bash "$script" "$@"
+    else
+        echo -e "${RED}错误: 找不到 pip 换源脚本${PLAIN}"
+        exit 1
+    fi
+}
+
+# Docker 测速
+run_docker_test() {
+    local script="${SCRIPT_DIR}/docker/speed_test.sh"
+    if [[ -f "$script" ]]; then
+        bash "$script" "$@"
+    else
+        echo -e "${RED}错误: 找不到 Docker 测速脚本${PLAIN}"
+        exit 1
+    fi
+}
+
+# Linux 测速
+run_linux_test() {
+    local script="${SCRIPT_DIR}/linux/speed_test.sh"
+    if [[ -f "$script" ]]; then
+        bash "$script" "$@"
+    else
+        echo -e "${RED}错误: 找不到 Linux 测速脚本${PLAIN}"
+        exit 1
+    fi
+}
+
+# pip 测速
+run_pip_test() {
+    local script="${SCRIPT_DIR}/pip/speed_test.sh"
+    if [[ -f "$script" ]]; then
+        bash "$script" "$@"
+    else
+        echo -e "${RED}错误: 找不到 pip 测速脚本${PLAIN}"
+        exit 1
+    fi
+}
+
+# Docker 自动换源
+run_docker_auto() {
+    local script="${SCRIPT_DIR}/docker/change_mirror.sh"
+    if [[ -f "$script" ]]; then
+        bash "$script" -a
+    else
+        echo -e "${RED}错误: 找不到 Docker 换源脚本${PLAIN}"
+        exit 1
+    fi
+}
+
+# Linux 自动换源
+run_linux_auto() {
+    local script="${SCRIPT_DIR}/linux/change_mirror.sh"
+    if [[ -f "$script" ]]; then
+        bash "$script" -a
+    else
+        echo -e "${RED}错误: 找不到 Linux 换源脚本${PLAIN}"
+        exit 1
+    fi
+}
+
+# pip 自动换源
+run_pip_auto() {
+    local script="${SCRIPT_DIR}/pip/change_mirror.sh"
+    if [[ -f "$script" ]]; then
+        bash "$script" -a
     else
         echo -e "${RED}错误: 找不到 pip 换源脚本${PLAIN}"
         exit 1
@@ -135,6 +214,24 @@ main() {
             ;;
         all)
             run_all
+            ;;
+        docker-test)
+            run_docker_test "$@"
+            ;;
+        linux-test)
+            run_linux_test "$@"
+            ;;
+        pip-test)
+            run_pip_test "$@"
+            ;;
+        docker-auto)
+            run_docker_auto
+            ;;
+        linux-auto)
+            run_linux_auto
+            ;;
+        pip-auto)
+            run_pip_auto
             ;;
         -h|--help|help)
             show_help

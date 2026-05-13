@@ -32,9 +32,9 @@ show_help() {
     echo "  -l, --list              列出所有可用的镜像源"
     echo "  -s, --set <地址>        设置指定的镜像源地址"
     echo "  -i, --interactive       交互式选择镜像源"
+    echo "  -a, --auto              自动换源(测速后选择最快的源)"
     echo "  -r, --restore           恢复备份的源配置"
     echo "  -c, --current           显示当前软件源配置"
-    echo "  -t, --test              测试镜像源连接速度"
     echo "  -u, --update            换源后更新软件包"
     echo "  -h, --help              显示此帮助信息"
     echo ""
@@ -803,6 +803,71 @@ interactive_select() {
     set_mirror "$selected_mirror"
 }
 
+# 自动换源 (测速后选择最快的源)
+auto_change_mirror() {
+    echo -e "${BOLD}========================================${PLAIN}"
+    echo -e "${BOLD}    Linux 软件源自动换源${PLAIN}"
+    echo -e "${BOLD}========================================${PLAIN}"
+    echo ""
+
+    detect_system
+    local source_file=$(get_source_file)
+
+    # Step 1: 备份原始源
+    echo -e "${BLUE}[Step 1] 备份原始软件源配置...${PLAIN}"
+    if [[ -f "$source_file" ]]; then
+        local backup_file="${source_file}.bak.$(date +%Y%m%d%H%M%S)"
+        cp "$source_file" "$backup_file"
+        echo -e "${SUCCESS} 已备份到: ${backup_file}"
+    elif [[ -d "$source_file" ]]; then
+        local backup_dir="${source_file}.bak.$(date +%Y%m%d%H%M%S)"
+        cp -r "$source_file" "$backup_dir"
+        echo -e "${SUCCESS} 已备份到: ${backup_dir}"
+    else
+        echo -e "${WARN} 未找到源配置文件，跳过备份"
+    fi
+    echo ""
+
+    # Step 2: 运行测速脚本
+    echo -e "${BLUE}[Step 2] 运行测速脚本...${PLAIN}"
+    local speed_test_script="${SCRIPT_DIR}/speed_test.sh"
+    if [[ ! -f "$speed_test_script" ]]; then
+        echo -e "${ERROR} 未找到测速脚本: ${speed_test_script}"
+        exit 1
+    fi
+
+    # 运行测速并更新 mirrors.txt
+    bash "$speed_test_script"
+    echo ""
+
+    # Step 3: 选择最快的源
+    echo -e "${BLUE}[Step 3] 选择最快的镜像源...${PLAIN}"
+
+    # 从更新后的 mirrors.txt 读取第一个镜像源
+    local fastest_mirror=""
+    while IFS='|' read -r url desc sys || [[ -n "$url" ]]; do
+        [[ "$url" =~ ^#.*$ || -z "$url" ]] && continue
+        fastest_mirror="$url"
+        break
+    done < "${MIRRORS_FILE}"
+
+    if [[ -z "$fastest_mirror" ]]; then
+        echo -e "${ERROR} 未找到可用的镜像源"
+        exit 1
+    fi
+
+    echo -e "${SUCCESS} 最快的镜像源: ${fastest_mirror}"
+    echo ""
+
+    # Step 4: 设置镜像源
+    echo -e "${BLUE}[Step 4] 设置镜像源...${PLAIN}"
+    set_mirror "$fastest_mirror"
+
+    echo ""
+    echo -e "${GREEN}${BOLD}自动换源完成!${PLAIN}"
+    echo -e "${BOLD}已更换为最快的镜像源: ${fastest_mirror}${PLAIN}"
+}
+
 # 显示当前配置
 show_current() {
     detect_system
@@ -828,46 +893,6 @@ show_current() {
     fi
 }
 
-# 测试镜像源速度
-test_mirrors() {
-    echo -e "${BOLD}测试镜像源连接速度...${PLAIN}"
-    echo ""
-
-    local mirrors=($(get_mirrors_array))
-    local results=()
-
-    for mirror in "${mirrors[@]}"; do
-        echo -n "测试 ${mirror}... "
-        local start_time=$(date +%s%N)
-        if curl -s --connect-timeout 3 "https://${mirror}/" > /dev/null 2>&1; then
-            local end_time=$(date +%s%N)
-            local duration=$(( (end_time - start_time) / 1000000 ))
-            echo -e "${GREEN}${duration}ms${PLAIN}"
-            results+=("${duration}|${mirror}")
-        else
-            echo -e "${RED}超时${PLAIN}"
-            results+=("999999|${mirror}")
-        fi
-    done
-
-    # 排序并显示结果
-    echo ""
-    echo -e "${BOLD}镜像源速度排名 (从快到慢):${PLAIN}"
-    IFS=$'\n' sorted=($(sort -t'|' -k1 -n <<<"${results[*]}"))
-    unset IFS
-
-    local rank=1
-    for result in "${sorted[@]}"; do
-        local time=$(echo "$result" | cut -d'|' -f1)
-        local mirror=$(echo "$result" | cut -d'|' -f2)
-        if [[ "$time" == "999999" ]]; then
-            printf "  %2d. %-45s ${RED}不可用${PLAIN}\n" "$rank" "$mirror"
-        else
-            printf "  %2d. %-45s ${GREEN}%sms${PLAIN}\n" "$rank" "$mirror" "$time"
-        fi
-        ((rank++))
-    done
-}
 
 # 更新软件包
 update_packages() {
@@ -918,16 +943,16 @@ main() {
                 action="interactive"
                 shift
                 ;;
+            -a|--auto)
+                action="auto"
+                shift
+                ;;
             -r|--restore)
                 action="restore"
                 shift
                 ;;
             -c|--current)
                 action="current"
-                shift
-                ;;
-            -t|--test)
-                action="test"
                 shift
                 ;;
             -u|--update)
@@ -965,11 +990,12 @@ main() {
             check_root
             interactive_select
             ;;
+        auto)
+            check_root
+            auto_change_mirror
+            ;;
         current)
             show_current
-            ;;
-        test)
-            test_mirrors
             ;;
         update)
             check_root

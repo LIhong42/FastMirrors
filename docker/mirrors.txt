@@ -2,15 +2,10 @@
 # 格式: 镜像地址|描述
 # 使用时请根据网络环境选择合适的镜像源
 
-# 国内镜像源
 docker.1ms.run|毫秒镜像 - 专为中国开发者提供
 dockerproxy.net|DockerProxy
 docker.m.daocloud.io|DaoCloud 镜像
 docker.1panel.live|1Panel 镜像
 hub.rat.dev|Rat.dev 镜像
-
-# 腾讯云镜像仓库
 mirror.ccs.tencentyun.com|腾讯云镜像
-
-# 官方镜像源 (国内访问可能较慢)
 registry.hub.docker.com|Docker Hub 官方

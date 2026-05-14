@@ -1,7 +1,6 @@
 # pip 镜像源列表
 # 格式: 镜像地址|描述|信任主机
 
-# 中国大陆镜像源
 pypi.tuna.tsinghua.edu.cn/simple|清华大学镜像|pypi.tuna.tsinghua.edu.cn
 mirrors.aliyun.com/pypi/simple/|阿里云镜像|mirrors.aliyun.com
 pypi.mirrors.ustc.edu.cn/simple/|中国科学技术大学镜像|pypi.mirrors.ustc.edu.cn
@@ -11,6 +10,4 @@ mirror.nju.edu.cn/pypi/web/simple|南京大学镜像|mirror.nju.edu.cn
 mirror.bjtu.edu.cn/pypi/web/simple|北京交通大学镜像|mirror.bjtu.edu.cn
 mirrors.hit.edu.cn/pypi/web/simple|哈尔滨工业大学镜像|mirrors.hit.edu.cn
 mirror.sjtu.edu.cn/pypi/web/simple|上海交通大学镜像|mirror.sjtu.edu.cn
-
-# 官方镜像源 (国内访问可能较慢)
 pypi.org/simple|PyPI 官方|pypi.org

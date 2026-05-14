@@ -4,8 +4,6 @@
 ## License: MIT
 ## 功能: 测试镜像源速度并按速度排序更新 mirrors.txt
 
-set -e
-
 # 脚本所在目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MIRRORS_FILE="${SCRIPT_DIR}/mirrors.txt"
@@ -27,6 +25,9 @@ TEST_TIMEOUT=5
 
 # 测试次数
 TEST_COUNT=3
+
+# 存储头部注释
+HEADER_LINES=()
 
 # 显示帮助信息
 show_help() {
@@ -100,14 +101,27 @@ test_single_mirror() {
     fi
 }
 
-# 读取镜像源列表
+# 读取镜像源列表和头部注释
 read_mirrors() {
     local mirrors=()
     local descs=()
+    local in_header=true
+    HEADER_LINES=()
 
-    while IFS='|' read -r url desc || [[ -n "$url" ]]; do
-        # 跳过注释行和空行
-        [[ "$url" =~ ^#.*$ || -z "$url" ]] && continue
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # 检查是否是注释行或空行
+        if [[ "$line" =~ ^#.*$ || -z "$line" ]]; then
+            if [[ "$in_header" == "true" ]]; then
+                HEADER_LINES+=("$line")
+            fi
+            continue
+        fi
+
+        # 遇到非注释非空行，头部结束
+        in_header=false
+
+        # 解析镜像行
+        IFS='|' read -r url desc <<< "$line"
         mirrors+=("$url")
         descs+=("$desc")
     done < "${MIRRORS_FILE}"
@@ -163,9 +177,17 @@ run_speed_test() {
     echo -e "${BOLD}========================================${PLAIN}"
     echo ""
 
-    # 按时间排序
-    IFS=$'\n' sorted=($(echo "${results[*]}" | tr ' ' '\n' | sort -t'|' -k1 -n))
-    unset IFS
+    # 按时间排序 - 使用临时文件避免进程替换兼容性问题
+    local temp_sort_file=$(mktemp)
+    for result in "${results[@]}"; do
+        echo "$result"
+    done > "$temp_sort_file"
+
+    local sorted=()
+    while IFS= read -r line; do
+        sorted+=("$line")
+    done < <(sort -t'|' -k1 -n "$temp_sort_file")
+    rm -f "$temp_sort_file"
 
     # 显示排序结果
     printf "${BOLD}%-6s %-45s %12s %s${PLAIN}\n" "排名" "镜像地址" "延迟" "描述"
@@ -173,23 +195,25 @@ run_speed_test() {
 
     local rank=1
     local valid_count=0
-    local new_content="# Docker 镜像仓库列表\n# 格式: 镜像地址|描述\n# 使用时请根据网络环境选择合适的镜像源\n# 最后更新: $(date '+%Y-%m-%d %H:%M:%S')\n\n"
+    local valid_results=()
 
     for result in "${sorted[@]}"; do
-        local time=$(echo "$result" | cut -d'|' -f1)
-        local mirror=$(echo "$result" | cut -d'|' -f2)
-        local desc=$(echo "$result" | cut -d'|' -f3)
+        [ -z "$result" ] && continue
+
+        local time="${result%%|*}"
+        local rest="${result#*|}"
+        local mirror="${rest%%|*}"
+        local desc="${rest#*|}"
 
         if [[ "$time" == "999999" ]]; then
-            printf "${RED}%-6s %-45s %12s %s${PLAIN}\n" "$rank" "$mirror" "不可用" "$desc"
-            # 不可用的放到最后
-            new_content+="${mirror}|${desc}\n"
+            printf "${RED}%-6s %-45s %12s %s${PLAIN}\n" "-" "$mirror" "不可用" "$desc"
+            # 不添加不可用的镜像到结果中
         else
             printf "${GREEN}%-6s %-45s %12s %s${PLAIN}\n" "$rank" "$mirror" "${time}ms" "$desc"
-            new_content+="${mirror}|${desc}\n"
-            ((valid_count++))
+            valid_results+=("${mirror}|${desc}")
+            valid_count=$((valid_count + 1))
+            rank=$((rank + 1))
         fi
-        ((rank++))
     done
 
     echo ""
@@ -203,10 +227,20 @@ run_speed_test() {
         # 备份原文件
         cp "${MIRRORS_FILE}" "${MIRRORS_FILE}.bak"
 
-        # 写入新内容
-        echo -e "$new_content" > "${MIRRORS_FILE}"
+        # 写入头部注释
+        {
+            for line in "${HEADER_LINES[@]}"; do
+                echo "$line"
+            done
+            echo ""
+            # 写入排序后的可用镜像
+            for result in "${valid_results[@]}"; do
+                echo "$result"
+            done
+        } > "${MIRRORS_FILE}"
 
         echo -e "${SUCCESS} 已更新 mirrors.txt (备份: mirrors.txt.bak)"
+        echo -e "${WARN} 已删除 $((count - valid_count)) 个不可用镜像"
     fi
 
     echo ""

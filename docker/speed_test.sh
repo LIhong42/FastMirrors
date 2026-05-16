@@ -6,7 +6,8 @@
 
 # 脚本所在目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MIRRORS_FILE="${SCRIPT_DIR}/mirrors.txt"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+MIRRORS_FILE="${PROJECT_ROOT}/mirror-sources/docker.txt"
 
 # 颜色定义
 RED='\033[31m'

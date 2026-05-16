@@ -16,16 +16,17 @@
 ```
 fast_mirrors/
 ├── fast_mirrors.sh          # 主入口脚本
+├── mirror-sources/          # 镜像源配置目录
+│   ├── docker.txt           # Docker 镜像源列表
+│   ├── linux.txt            # Linux 软件源列表
+│   └── pip.txt              # pip 镜像源列表
 ├── docker/
-│   ├── mirrors.txt          # Docker 镜像源列表
 │   ├── change_mirror.sh     # Docker 换源脚本
 │   └── speed_test.sh        # Docker 测速脚本
 ├── linux/
-│   ├── mirrors.txt          # Linux 软件源列表
 │   ├── change_mirror.sh     # Linux 换源脚本
 │   └── speed_test.sh        # Linux 测速脚本
 └── pip/
-    ├── mirrors.txt          # pip 镜像源列表
     ├── change_mirror.sh     # pip 换源脚本
     └── speed_test.sh        # pip 测速脚本
 ```
@@ -166,7 +167,7 @@ sudo ./fast_mirrors.sh pip-auto -g
 
 ## 自定义镜像源
 
-可以在对应的 `mirrors.txt` 文件中添加自定义镜像源，格式如下：
+可以在 `mirror-sources/` 目录下的对应文件中添加自定义镜像源，格式如下：
 
 ```
 镜像地址|描述|其他参数
@@ -175,13 +176,13 @@ sudo ./fast_mirrors.sh pip-auto -g
 例如：
 
 ```
-# Docker 镜像源
+# mirror-sources/docker.txt - Docker 镜像源
 docker.example.com|示例镜像源
 
-# Linux 软件源
+# mirror-sources/linux.txt - Linux 软件源
 mirrors.example.com|示例镜像站|all
 
-# pip 镜像源
+# mirror-sources/pip.txt - pip 镜像源
 pypi.example.com/simple|示例 pip 源|pypi.example.com
 ```
 

@@ -1,13 +1,16 @@
 # pip 镜像源列表
 # 格式: 镜像地址|描述|信任主机
 
-pypi.tuna.tsinghua.edu.cn/simple|清华大学镜像|pypi.tuna.tsinghua.edu.cn
-mirrors.aliyun.com/pypi/simple/|阿里云镜像|mirrors.aliyun.com
-pypi.mirrors.ustc.edu.cn/simple/|中国科学技术大学镜像|pypi.mirrors.ustc.edu.cn
-mirrors.cloud.tencent.com/pypi/simple|腾讯云镜像|mirrors.cloud.tencent.com
+
+
 repo.huaweicloud.com/repository/pypi/simple|华为云镜像|repo.huaweicloud.com
-mirror.nju.edu.cn/pypi/web/simple|南京大学镜像|mirror.nju.edu.cn
-mirror.bjtu.edu.cn/pypi/web/simple|北京交通大学镜像|mirror.bjtu.edu.cn
-mirrors.hit.edu.cn/pypi/web/simple|哈尔滨工业大学镜像|mirrors.hit.edu.cn
-mirror.sjtu.edu.cn/pypi/web/simple|上海交通大学镜像|mirror.sjtu.edu.cn
-pypi.org/simple|PyPI 官方|pypi.org
+mirrors.bfsu.edu.cn/pypi/web/simple|北京外国语大学镜像|mirrors.bfsu.edu.cn
+mirrors.huaweicloud.com/repository/pypi/simple|华为云镜像(备用)|mirrors.huaweicloud.com
+mirrors.sustech.edu.cn/pypi/web/simple|南方科技大学镜像|mirrors.sustech.edu.cn
+mirrors.cloud.tencent.com/pypi/simple|腾讯云镜像|mirrors.cloud.tencent.com
+pypi.doubanio.com/simple|豆瓣镜像|pypi.doubanio.com
+pypi.tuna.tsinghua.edu.cn/simple|清华大学镜像|pypi.tuna.tsinghua.edu.cn
+mirrors.westlake.edu.cn/pypi/simple|西湖大学镜像|mirrors.westlake.edu.cn
+download.pytorch.org/whl|PyTorch官方下载源|download.pytorch.org
+mirrors.ustc.edu.cn/pypi/simple|中国科学技术大学镜像|mirrors.ustc.edu.cn
+pypi.org/simple|PyPI官方源(国际)|pypi.org

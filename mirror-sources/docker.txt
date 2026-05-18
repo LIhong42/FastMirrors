@@ -1,11 +1,13 @@
-# Docker 镜像仓库列表
-# 格式: 镜像地址|描述
-# 使用时请根据网络环境选择合适的镜像源
+# Docker镜像源列表
+# 提取自多个GitHub项目
+# 更新时间: 2026-05-18
 
-docker.1ms.run|毫秒镜像 - 专为中国开发者提供
-dockerproxy.net|DockerProxy
-docker.m.daocloud.io|DaoCloud 镜像
-docker.1panel.live|1Panel 镜像
-hub.rat.dev|Rat.dev 镜像
-mirror.ccs.tencentyun.com|腾讯云镜像
-registry.hub.docker.com|Docker Hub 官方
+
+
+docker.jiaxin.site|简行镜像
+docker.m.daocloud.io|DaoCloud镜像站
+proxy.vvvv.ee|Docker离线镜像下载
+dockerproxy.net|Docker Proxy镜像加速
+docker.1panel.live|1Panel镜像（限制只能中国地区）
+registry.cyou|容器镜像管理中心
+docker.1ms.run|毫秒镜像

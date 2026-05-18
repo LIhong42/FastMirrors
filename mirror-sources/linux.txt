@@ -1,37 +1,37 @@
-# Linux 软件源列表
-# 格式: 镜像地址|描述|适用系统
-# 适用系统: all(所有), debian, ubuntu, centos, fedora, arch, alpine 等
+# Linux软件源列表
+# 来源: GitHub项目分析
+# 格式: 地址|描述|适用系统
 
 
-mirror.iscas.ac.cn|中科院软件所镜像|all
-mirrors.pku.edu.cn|北京大学镜像|all
-mirrors.aliyun.com|阿里云镜像|all
-mirrors.bfsu.edu.cn|北京外国语大学镜像|all
-mirrors.ctyun.cn|天翼云镜像|all
-mirrors.cstcloud.cn|中科院云计算中心镜像|all
-mirrors.tencent.com|腾讯云镜像|all
-mirrors.tuna.tsinghua.edu.cn|清华大学镜像|all
-mirrors.huaweicloud.com|华为云镜像|all
-mirrors.nwafu.edu.cn|西北农林科技大学镜像|all
-mirrors.volces.com|火山引擎镜像|all
-mirrors.cmecloud.cn|中国移动云镜像|all
+
+
 mirrors.nju.edu.cn|南京大学镜像|all
-mirror.sjtu.edu.cn|上海交通大学镜像|all
-mirrors.sdu.edu.cn|山东大学镜像|all
-mirrors.163.com|网易镜像|all
+mirrors.bfsu.edu.cn|北京外国语大学镜像|all
+mirrors.cernet.edu.cn|中国教育和科研计算机网镜像|all
+mirrors.nwafu.edu.cn|西北农林科技大学镜像|all
+mirror.lzu.edu.cn|兰州大学镜像|all
 mirrors.sustech.edu.cn|南方科技大学镜像|all
-mirrors.hust.edu.cn|华中科技大学镜像|all
+mirrors.cmecloud.cn|中国移动镜像|all
+mirrors.jlu.edu.cn|吉林大学镜像|all
+mirrors.hit.edu.cn|哈尔滨工业大学镜像|all
+mirrors.pku.edu.cn|北京大学镜像|all
+mirrors.xtom.de|德国XTOM镜像|all
+mirrors.tuna.tsinghua.edu.cn|清华大学镜像|all
+mirrors.qlu.edu.cn|齐鲁工业大学镜像|all
+mirrors.jcut.edu.cn|荆楚理工学院镜像|all
+mirror.sjtu.edu.cn|上海交通大学镜像|all
+mirror.nyist.edu.cn|南阳理工学院镜像|all
+ftp.udx.icscoe.jp/Linux|日本镜像|all
+mirror.01link.hk|香港01link镜像|all
+mirrors.dotsrc.org|丹麦DotSrc镜像|all
+mirrors.xtom.nl|荷兰XTOM镜像|all
+mirror.accum.se|瑞典Accum镜像|all
+mirrors.ocf.berkeley.edu|伯克利大学镜像|all
+ftp.lysator.liu.se|瑞典Lysator镜像|all
+mirrors.gbnetwork.com|GBNetwork镜像|all
+mirror.yandex.ru|俄罗斯Yandex镜像|all
+mirrors.huaweicloud.com|华为云镜像|all
+mirror.sg.gs|新加坡镜像|all
 mirrors.ustc.edu.cn|中国科学技术大学镜像|all
-linux.cs.nctu.edu.tw|台湾交通大学|all
-free.nchc.org.tw|台湾国网中心|all
-mirrors.xtom.jp|日本 XTOM|all
-mirrors.zju.edu.cn|浙江大学镜像|all
-mirrors.mit.edu|MIT 镜像|all
-mirrors.kernel.org|Kernel.org 官方|all
-mirrors.cqu.edu.cn|重庆大学镜像|all
-mirror.01link.hk|01link 香港|all
-mirror.sg.gs|新加坡 GS 镜像|all
-ftp.jaist.ac.jp/pub/Linux|日本 JAIST|all
-mirror.ossplanet.net|台湾 OSS Planet|all
-download.nus.edu.sg/mirror|新加坡国立大学|all
-mirrors.xtom.hk|XTom 香港|all
+mirror.truenetwork.ru|俄罗斯TrueNetwork镜像|all
+
